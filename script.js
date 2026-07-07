@@ -91,7 +91,7 @@ function scanPose(time, options) {
     angle: -look * 0.28 + Math.sin(TAU * phase * 2 + 0.2) * 0.035,
     width: options.beamSize * (1.22 + dynamicScale * 0.1 + sizeBreath * (0.035 + options.motionLife * 0.035)),
     length: options.beamLength * (0.96 + dynamicScale * 0.13 + lengthBreath * (0.055 + options.motionLife * 0.06)),
-    pulse: 0.9 + breathe * options.pulseDepth + Math.sin(cycle * Math.PI * 1.35 + 0.5) * options.pulseDepth * 0.35,
+    pulse: 0.9 + breathe * options.pulseDepth + Math.sin(TAU * phase * 2 + 0.5) * options.pulseDepth * 0.35,
     softness: 1.08 + blurBreath * options.blurPulse,
     focus: 0.94 + focus * 0.16,
   };
