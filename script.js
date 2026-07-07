@@ -31,6 +31,7 @@ const statusLine = document.getElementById("status");
 
 const W = 1280;
 const H = 1024;
+const TAU = Math.PI * 2;
 const UI_FONT = '"WB Sans Local", "WB Sans", Arial, sans-serif';
 let playing = true;
 let startedAt = performance.now();
@@ -71,23 +72,23 @@ Object.values(controls).forEach((control) => {
 syncOutputs();
 
 function scanPose(time, options) {
-  const cycle = time / options.duration;
-  const breathe = Math.sin(cycle * Math.PI * options.pulseSpeed);
-  const blurBreath = Math.sin(cycle * Math.PI * (options.pulseSpeed * 0.62) + 1.2);
-  const sizeBreath = Math.sin(cycle * Math.PI * 1.14 + 0.35);
-  const lengthBreath = Math.sin(cycle * Math.PI * 0.86 + 1.7);
-  const lookA = Math.sin(cycle * Math.PI * 2);
-  const lookB = Math.sin(cycle * Math.PI * 3.34 + 0.9) * 0.26;
-  const lookC = Math.sin(cycle * Math.PI * 1.12 - 0.4) * 0.16;
+  const phase = ((time / options.duration) % 1 + 1) % 1;
+  const breathe = Math.sin(TAU * phase);
+  const blurBreath = Math.sin(TAU * phase + 1.2);
+  const sizeBreath = Math.sin(TAU * phase * 2 + 0.35);
+  const lengthBreath = Math.sin(TAU * phase * 2 + 1.7);
+  const lookA = Math.sin(TAU * phase);
+  const lookB = Math.sin(TAU * phase * 2 + 0.9) * 0.26;
+  const lookC = Math.sin(TAU * phase * 3 - 0.4) * 0.16;
   const amp = options.amplitude;
   const look = (lookA + lookB + lookC) * amp * (0.5 + options.motionLife * 0.45);
-  const dynamicScale = 0.5 + 0.5 * Math.sin(cycle * Math.PI * 2.18 - 0.5);
-  const focus = 0.5 + 0.5 * Math.sin(cycle * Math.PI * 2.68 + 1.4);
+  const dynamicScale = 0.5 + 0.5 * Math.sin(TAU * phase * 2 - 0.5);
+  const focus = 0.5 + 0.5 * Math.sin(TAU * phase * 3 + 1.4);
 
   return {
     sourceX: W / 2,
     sourceY: -260,
-    angle: -look * 0.28 + Math.sin(cycle * Math.PI * 1.65) * 0.035,
+    angle: -look * 0.28 + Math.sin(TAU * phase * 2 + 0.2) * 0.035,
     width: options.beamSize * (1.22 + dynamicScale * 0.1 + sizeBreath * (0.035 + options.motionLife * 0.035)),
     length: options.beamLength * (0.96 + dynamicScale * 0.13 + lengthBreath * (0.055 + options.motionLife * 0.06)),
     pulse: 0.9 + breathe * options.pulseDepth + Math.sin(cycle * Math.PI * 1.35 + 0.5) * options.pulseDepth * 0.35,
@@ -236,7 +237,10 @@ async function exportCanvas(kind) {
   }
 
   const fps = clamp(Number(controls.fps.value), 24, 60);
-  const seconds = clamp(Number(controls.exportSeconds.value), 1, 20);
+  const requestedSeconds = clamp(Number(controls.exportSeconds.value), 1, 20);
+  const cycleSeconds = settings().duration;
+  const cycles = Math.max(1, Math.round(requestedSeconds / cycleSeconds));
+  const seconds = cycles * cycleSeconds;
   const exportCanvasEl = document.createElement("canvas");
   exportCanvasEl.width = W;
   exportCanvasEl.height = H;
@@ -254,15 +258,14 @@ async function exportCanvas(kind) {
     recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
   });
 
-  setBusy(true, kind === "glow" ? "Записываю свечение..." : "Записываю экран...");
+  setBusy(true, kind === "glow" ? "Записываю зацикленное свечение..." : "Записываю зацикленный экран...");
   recorder.start();
 
   const totalFrames = Math.round(seconds * fps);
   const frameDuration = 1000 / fps;
-  const startTime = currentTimeSeconds();
 
   for (let frame = 0; frame < totalFrames; frame += 1) {
-    const t = startTime + frame / fps;
+    const t = frame / fps;
     if (kind === "glow") {
       drawGlowLayer(ctx, t, settings());
     } else {
