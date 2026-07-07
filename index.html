@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Анимация терминала</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="stage-panel" aria-label="Экран терминала">
+        <div class="canvas-shell">
+          <canvas id="screenCanvas" width="1280" height="1024"></canvas>
+        </div>
+      </section>
+
+      <aside class="controls" aria-label="Настройки анимации">
+        <div class="controls__header">
+          <h1>Сканер терминала</h1>
+          <button id="playToggle" type="button">Пауза</button>
+        </div>
+
+        <div class="control-grid">
+          <label>
+            Длительность, сек
+            <input id="duration" type="range" min="2" max="12" value="4" step="0.1" />
+            <output id="durationValue">4.0</output>
+          </label>
+          <label>
+            Амплитуда
+            <input id="amplitude" type="range" min="0.55" max="1.35" value="1" step="0.01" />
+            <output id="amplitudeValue">1.00</output>
+          </label>
+          <label>
+            Интенсивность
+            <input id="intensity" type="range" min="0.35" max="1.4" value="1.4" step="0.01" />
+            <output id="intensityValue">1.40</output>
+          </label>
+          <label>
+            Размытие
+            <input id="blur" type="range" min="0.65" max="1.85" value="0.79" step="0.01" />
+            <output id="blurValue">0.79</output>
+          </label>
+          <label>
+            Размер луча
+            <input id="beamSize" type="range" min="0.65" max="1.45" value="0.65" step="0.01" />
+            <output id="beamSizeValue">0.65</output>
+          </label>
+          <label>
+            Длина луча
+            <input id="beamLength" type="range" min="0.65" max="1.65" value="1.09" step="0.01" />
+            <output id="beamLengthValue">1.09</output>
+          </label>
+          <label>
+            FPS экспорта
+            <input id="fps" type="number" min="24" max="60" value="30" />
+          </label>
+          <label>
+            Длина экспорта, сек
+            <input id="exportSeconds" type="number" min="1" max="20" value="6" step="0.5" />
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="exportScreen" type="button">Экспорт экрана WebM</button>
+          <button id="exportGlow" type="button">Экспорт свечения WebM</button>
+          <button id="exportGlowWebp" type="button">Свечение WebP</button>
+        </div>
+
+        <p id="status" class="status" role="status">Готово к экспорту.</p>
+      </aside>
+    </main>
+
+    <canvas id="glowCanvas" width="1280" height="1024" hidden></canvas>
+    <script src="script.js"></script>
+  </body>
+</html>
