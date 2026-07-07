@@ -17,39 +17,42 @@
       <aside class="controls" aria-label="Настройки анимации">
         <div class="controls__header">
           <h1>Сканер терминала</h1>
-          <button id="playToggle" type="button">Пауза</button>
+          <div class="header-actions">
+            <button id="previewToggle" type="button">Предпросмотр</button>
+            <button id="playToggle" type="button">Пауза</button>
+          </div>
         </div>
 
         <div class="control-grid">
           <label>
             Длительность, сек
-            <input id="duration" type="range" min="2" max="12" value="4" step="0.1" />
-            <output id="durationValue">4.0</output>
+            <input id="duration" type="range" min="2" max="12" value="8" step="0.1" />
+            <output id="durationValue">8.0</output>
           </label>
           <label>
             Амплитуда
-            <input id="amplitude" type="range" min="0.55" max="1.35" value="1" step="0.01" />
-            <output id="amplitudeValue">1.00</output>
+            <input id="amplitude" type="range" min="0.55" max="1.35" value="1.35" step="0.01" />
+            <output id="amplitudeValue">1.35</output>
           </label>
           <label>
             Интенсивность
-            <input id="intensity" type="range" min="0.35" max="1.4" value="1.4" step="0.01" />
-            <output id="intensityValue">1.40</output>
+            <input id="intensity" type="range" min="0.35" max="1.4" value="0.93" step="0.01" />
+            <output id="intensityValue">0.93</output>
           </label>
           <label>
             Размытие
-            <input id="blur" type="range" min="0.65" max="1.85" value="0.79" step="0.01" />
-            <output id="blurValue">0.79</output>
+            <input id="blur" type="range" min="0.65" max="1.85" value="0.65" step="0.01" />
+            <output id="blurValue">0.65</output>
           </label>
           <label>
             Размер луча
-            <input id="beamSize" type="range" min="0.65" max="1.45" value="0.65" step="0.01" />
-            <output id="beamSizeValue">0.65</output>
+            <input id="beamSize" type="range" min="0.65" max="1.45" value="0.71" step="0.01" />
+            <output id="beamSizeValue">0.71</output>
           </label>
           <label>
             Длина луча
-            <input id="beamLength" type="range" min="0.65" max="1.65" value="1.09" step="0.01" />
-            <output id="beamLengthValue">1.09</output>
+            <input id="beamLength" type="range" min="0.65" max="1.65" value="1.37" step="0.01" />
+            <output id="beamLengthValue">1.37</output>
           </label>
           <label>
             FPS экспорта

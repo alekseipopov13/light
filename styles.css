@@ -82,6 +82,12 @@ canvas {
   gap: 16px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 h1 {
   margin: 0;
   font-size: 20px;
@@ -139,6 +145,11 @@ button {
 
 button:hover {
   background: #303038;
+}
+
+button.is-active {
+  border-color: rgba(216, 61, 183, 0.75);
+  background: rgba(216, 61, 183, 0.18);
 }
 
 button:disabled {
