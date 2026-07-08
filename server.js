@@ -19,6 +19,7 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
   ".otf": "font/otf",
   ".mp4": "video/mp4",
+  ".webm": "video/webm",
 };
 
 const sessions = new Map();
@@ -45,6 +46,7 @@ const server = http.createServer(async (req, res) => {
         width: clampNumber(body.width, 1, 8192),
         height: clampNumber(body.height, 1, 8192),
         name: String(body.name || "terminal-screen").replace(/[^a-z0-9-_]/gi, "-"),
+        format: body.format === "webm" ? "webm" : "mp4",
       });
       sendJson(res, { id });
       return;
@@ -63,9 +65,13 @@ const server = http.createServer(async (req, res) => {
     const finishMatch = req.url.match(/^\/api\/export\/([^/]+)\/finish$/);
     if (req.method === "POST" && finishMatch) {
       const session = getSession(finishMatch[1]);
-      const outputName = `${session.name}-${Date.now()}.mp4`;
+      const outputName = `${session.name}-${Date.now()}.${session.format}`;
       const outputPath = path.join(EXPORTS_DIR, outputName);
-      await renderMp4(session, outputPath);
+      if (session.format === "webm") {
+        await renderWebm(session, outputPath);
+      } else {
+        await renderMp4(session, outputPath);
+      }
       sendJson(res, { url: `/exports/${outputName}`, fileName: outputName });
       return;
     }
@@ -107,6 +113,41 @@ function renderMp4(session, outputPath) {
       "slow",
       "-movflags",
       "+faststart",
+      outputPath,
+    ];
+    const ffmpeg = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
+    let stderr = "";
+    ffmpeg.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    ffmpeg.on("error", reject);
+    ffmpeg.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(stderr || `ffmpeg exited with code ${code}`));
+    });
+  });
+}
+
+function renderWebm(session, outputPath) {
+  return new Promise((resolve, reject) => {
+    const args = [
+      "-y",
+      "-framerate",
+      String(session.fps),
+      "-i",
+      path.join(session.dir, "frame-%04d.png"),
+      "-frames:v",
+      String(session.totalFrames),
+      "-c:v",
+      "libvpx-vp9",
+      "-pix_fmt",
+      "yuva420p",
+      "-auto-alt-ref",
+      "0",
+      "-crf",
+      "18",
+      "-b:v",
+      "0",
       outputPath,
     ];
     const ffmpeg = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });

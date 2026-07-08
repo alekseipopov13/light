@@ -844,7 +844,17 @@ function currentTimeSeconds() {
   return playing ? (performance.now() - startedAt) / 1000 : (pausedAt - startedAt) / 1000;
 }
 
+function exportFrameTime(frame, totalFrames, exportSettings) {
+  if (totalFrames <= 1) return 0;
+  return (frame / (totalFrames - 1)) * exportSettings.duration;
+}
+
 async function exportCanvas(kind) {
+  if (kind === "glow") {
+    await exportGlowWebmOffline();
+    return;
+  }
+
   if (!canRecordVideo()) {
     statusLine.textContent = "Этот браузер не поддерживает запись WebM. Откройте страницу в Chrome или Edge.";
     return;
@@ -885,7 +895,7 @@ async function exportCanvas(kind) {
   const recordingStartedAt = performance.now();
 
   for (let frame = 0; frame < totalFrames; frame += 1) {
-    const t = (frame / totalFrames) * exportSettings.duration;
+    const t = exportFrameTime(frame, totalFrames, exportSettings);
     const exportPreview = exportPreviewActive
       ? { active: true, progress: clamp(t / 3, 0, 1), startAngle: exportPreviewStartAngle }
       : { active: false, progress: 0, startAngle: 0 };
@@ -906,6 +916,56 @@ async function exportCanvas(kind) {
   const blob = await done;
   downloadBlob(blob, kind === "glow" ? "terminal-glow.webm" : "terminal-screen.webm");
   setBusy(false, "Экспорт готов.");
+}
+
+async function exportGlowWebmOffline() {
+  const fps = 30;
+  const exportSettings = settings();
+  const seconds = clamp(exportSettings.duration, 1, 20);
+  const totalFrames = Math.round(seconds * fps);
+  const exportCanvasEl = document.createElement("canvas");
+  exportCanvasEl.width = W;
+  exportCanvasEl.height = H;
+  const ctx = exportCanvasEl.getContext("2d", { alpha: true });
+  const apiBase = localApiBase();
+
+  setBusy(true, `Готовлю WebM-свечение: 0/${totalFrames}`);
+
+  try {
+    const start = await postJson(`${apiBase}/api/export/start`, {
+      fps,
+      seconds,
+      totalFrames,
+      width: W,
+      height: H,
+      name: "terminal-glow",
+      format: "webm",
+    });
+
+    for (let frame = 0; frame < totalFrames; frame += 1) {
+      const t = exportFrameTime(frame, totalFrames, exportSettings);
+      drawGlowLayer(ctx, t, exportSettings);
+      const blob = await canvasToBlob(exportCanvasEl, "image/png");
+      await fetch(`${apiBase}/api/export/${start.id}/frame/${frame}`, {
+        method: "POST",
+        headers: { "Content-Type": "image/png" },
+        body: blob,
+      });
+
+      if (frame % 10 === 0 || frame === totalFrames - 1) {
+        statusLine.textContent = `Готовлю WebM-свечение: ${frame + 1}/${totalFrames}`;
+        await wait(0);
+      }
+    }
+
+    statusLine.textContent = "Собираю WebM через ffmpeg...";
+    const result = await postJson(`${apiBase}/api/export/${start.id}/finish`, {});
+    downloadUrl(`${apiBase}${result.url}`, result.fileName);
+    setBusy(false, "WebM-свечение готово.");
+  } catch (error) {
+    setBusy(false, "WebM-свечение не собрано. Запустите локальный server.js и проверьте ffmpeg.");
+    console.error(error);
+  }
 }
 
 async function exportMp4Offline() {
@@ -929,10 +989,11 @@ async function exportMp4Offline() {
       width: W,
       height: H,
       name: "terminal-screen",
+      format: "mp4",
     });
 
     for (let frame = 0; frame < totalFrames; frame += 1) {
-      const t = (frame / totalFrames) * exportSettings.duration;
+      const t = exportFrameTime(frame, totalFrames, exportSettings);
       render(t, ctx, { active: false, progress: 0, startAngle: 0 }, exportSettings);
       const blob = await canvasToBlob(exportCanvasEl, "image/png");
       await fetch(`${apiBase}/api/export/${start.id}/frame/${frame}`, {
@@ -976,7 +1037,7 @@ async function exportPngFrames() {
   setBusy(true, `Сохраняю ${totalFrames} PNG-кадров...`);
 
   for (let frame = 0; frame < totalFrames; frame += 1) {
-    const t = (frame / totalFrames) * exportSettings.duration;
+    const t = exportFrameTime(frame, totalFrames, exportSettings);
     render(t, ctx, { active: false, progress: 0, startAngle: 0 }, exportSettings);
     const blob = await canvasToBlob(exportCanvasEl, "image/png");
     const fileName = `terminal-screen-${String(frame).padStart(4, "0")}.png`;
