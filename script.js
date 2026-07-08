@@ -30,8 +30,10 @@ const playToggle = document.getElementById("playToggle");
 const previewToggle = document.getElementById("previewToggle");
 const exportScreen = document.getElementById("exportScreen");
 const exportGlow = document.getElementById("exportGlow");
+const exportFrames = document.getElementById("exportFrames");
 const exportGlowWebp = document.getElementById("exportGlowWebp");
 const statusLine = document.getElementById("status");
+const exportMp4 = document.getElementById("exportMp4");
 
 const W = 1280;
 const H = 1024;
@@ -246,11 +248,11 @@ function drawGlowLayer(ctx, time, options, forcedAngle = null, previewFocusProgr
   ]);
 
   ctx.filter = `blur(${Math.round(54 * blurScale)}px)`;
-  drawEllipseGlow(ctx, bodyX, bodyY * 1.2, 560 * pose.width * blurScale, 600 * pose.length * blurScale, 0, [
-    [0, `rgba(220, 41, 178, ${0.11 * intensity})`],
-    [0.34, `rgba(137, 15, 98, ${0.075 * intensity})`],
-    [0.64, `rgba(54, 7, 38, ${0.042 * intensity})`],
-    [0.86, `rgba(14, 2, 10, ${0.025 * intensity})`],
+  drawEllipseGlow(ctx, bodyX, bodyY * 1.3, 520 * pose.width * blurScale, 720 * pose.length * blurScale, 0, [
+    [0, `rgba(220, 41, 178, ${0.075 * intensity})`],
+    [0.28, `rgba(137, 15, 98, ${0.052 * intensity})`],
+    [0.58, `rgba(54, 7, 38, ${0.024 * intensity})`],
+    [0.82, `rgba(14, 2, 10, ${0.01 * intensity})`],
     [1, "rgba(0, 0, 0, 0)"],
   ]);
 
@@ -263,43 +265,50 @@ function drawGlowLayer(ctx, time, options, forcedAngle = null, previewFocusProgr
 }
 
 function drawFocusedBeamShaft(ctx, pose, bodyY, blurScale, intensity) {
-  const yStart = bodyY * 0.44;
-  const yEnd = bodyY * 1.55;
-  const topWidth = 24 * pose.width * blurScale;
-  const bottomWidth = 220 * pose.width * blurScale;
+  const yStart = bodyY * 0.38;
+  const yEnd = bodyY * 1.72;
+  const topWidth = 88 * pose.width * blurScale;
+  const centerWidth = 250 * pose.width * blurScale;
+  const bottomWidth = 28 * pose.width * blurScale;
 
   ctx.save();
-  ctx.filter = `blur(${Math.round(18 * blurScale)}px)`;
+  ctx.filter = `blur(${Math.round(24 * blurScale)}px)`;
   let gradient = ctx.createLinearGradient(0, yStart, 0, yEnd);
   gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
-  gradient.addColorStop(0.18, `rgba(255, 222, 251, ${0.06 * intensity})`);
-  gradient.addColorStop(0.46, `rgba(238, 52, 195, ${0.13 * intensity})`);
-  gradient.addColorStop(0.76, `rgba(164, 18, 118, ${0.08 * intensity})`);
+  gradient.addColorStop(0.16, `rgba(255, 222, 251, ${0.055 * intensity})`);
+  gradient.addColorStop(0.42, `rgba(238, 52, 195, ${0.125 * intensity})`);
+  gradient.addColorStop(0.62, `rgba(164, 18, 118, ${0.045 * intensity})`);
+  gradient.addColorStop(0.82, `rgba(48, 4, 34, ${0.012 * intensity})`);
   gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
   ctx.fillStyle = gradient;
-  drawTaperedPath(ctx, yStart, yEnd, topWidth, bottomWidth);
+  drawOvalBeamPath(ctx, yStart, yEnd, topWidth, centerWidth, bottomWidth);
 
-  ctx.filter = `blur(${Math.round(7 * blurScale)}px)`;
+  ctx.filter = `blur(${Math.round(10 * blurScale)}px)`;
   gradient = ctx.createLinearGradient(0, yStart, 0, yEnd);
   gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
-  gradient.addColorStop(0.2, `rgba(255, 250, 254, ${0.09 * intensity})`);
-  gradient.addColorStop(0.48, `rgba(255, 159, 236, ${0.14 * intensity})`);
-  gradient.addColorStop(0.78, `rgba(225, 48, 186, ${0.055 * intensity})`);
+  gradient.addColorStop(0.18, `rgba(255, 250, 254, ${0.08 * intensity})`);
+  gradient.addColorStop(0.44, `rgba(255, 159, 236, ${0.13 * intensity})`);
+  gradient.addColorStop(0.62, `rgba(225, 48, 186, ${0.028 * intensity})`);
+  gradient.addColorStop(0.8, `rgba(82, 7, 58, ${0.008 * intensity})`);
   gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
   ctx.fillStyle = gradient;
-  drawTaperedPath(ctx, yStart, yEnd, topWidth * 0.34, bottomWidth * 0.36);
+  drawOvalBeamPath(ctx, yStart, yEnd, topWidth * 0.48, centerWidth * 0.42, bottomWidth * 0.44);
 
   ctx.filter = "none";
   ctx.restore();
 }
 
-function drawTaperedPath(ctx, yStart, yEnd, topWidth, bottomWidth) {
-  const curve = (yEnd - yStart) * 0.36;
+function drawOvalBeamPath(ctx, yStart, yEnd, topWidth, centerWidth, bottomWidth) {
+  const centerY = yStart + (yEnd - yStart) * 0.43;
+  const topCurve = (centerY - yStart) * 0.92;
+  const bottomCurve = (yEnd - centerY) * 0.72;
   ctx.beginPath();
   ctx.moveTo(-topWidth, yStart);
-  ctx.bezierCurveTo(-topWidth * 1.25, yStart + curve, -bottomWidth, yEnd - curve * 0.4, -bottomWidth, yEnd);
+  ctx.bezierCurveTo(-topWidth * 1.9, yStart + topCurve * 0.3, -centerWidth, centerY - topCurve * 0.12, -centerWidth, centerY);
+  ctx.bezierCurveTo(-centerWidth, centerY + bottomCurve * 0.22, -bottomWidth * 4.4, yEnd - bottomCurve * 0.38, -bottomWidth, yEnd);
   ctx.lineTo(bottomWidth, yEnd);
-  ctx.bezierCurveTo(bottomWidth, yEnd - curve * 0.4, topWidth * 1.25, yStart + curve, topWidth, yStart);
+  ctx.bezierCurveTo(bottomWidth * 4.4, yEnd - bottomCurve * 0.38, centerWidth, centerY + bottomCurve * 0.22, centerWidth, centerY);
+  ctx.bezierCurveTo(centerWidth, centerY - topCurve * 0.12, topWidth * 1.9, yStart + topCurve * 0.3, topWidth, yStart);
   ctx.closePath();
   ctx.fill();
 }
@@ -899,6 +908,92 @@ async function exportCanvas(kind) {
   setBusy(false, "Экспорт готов.");
 }
 
+async function exportMp4Offline() {
+  const fps = 30;
+  const exportSettings = settings();
+  const seconds = clamp(exportSettings.duration, 1, 20);
+  const totalFrames = Math.round(seconds * fps);
+  const exportCanvasEl = document.createElement("canvas");
+  exportCanvasEl.width = W;
+  exportCanvasEl.height = H;
+  const ctx = exportCanvasEl.getContext("2d");
+  const apiBase = localApiBase();
+
+  setBusy(true, `Готовлю MP4: 0/${totalFrames}`);
+
+  try {
+    const start = await postJson(`${apiBase}/api/export/start`, {
+      fps,
+      seconds,
+      totalFrames,
+      width: W,
+      height: H,
+      name: "terminal-screen",
+    });
+
+    for (let frame = 0; frame < totalFrames; frame += 1) {
+      const t = (frame / totalFrames) * exportSettings.duration;
+      render(t, ctx, { active: false, progress: 0, startAngle: 0 }, exportSettings);
+      const blob = await canvasToBlob(exportCanvasEl, "image/png");
+      await fetch(`${apiBase}/api/export/${start.id}/frame/${frame}`, {
+        method: "POST",
+        headers: { "Content-Type": "image/png" },
+        body: blob,
+      });
+
+      if (frame % 10 === 0 || frame === totalFrames - 1) {
+        statusLine.textContent = `Готовлю MP4: ${frame + 1}/${totalFrames}`;
+        await wait(0);
+      }
+    }
+
+    statusLine.textContent = "Собираю MP4 через ffmpeg...";
+    const result = await postJson(`${apiBase}/api/export/${start.id}/finish`, {});
+    downloadUrl(`${apiBase}${result.url}`, result.fileName);
+    setBusy(false, "MP4 готов.");
+  } catch (error) {
+    setBusy(false, "MP4 не собран. Запустите локальный server.js и проверьте ffmpeg.");
+    console.error(error);
+  }
+}
+
+async function exportPngFrames() {
+  if (typeof window.showDirectoryPicker !== "function") {
+    statusLine.textContent = "Экспорт кадров доступен в Chrome/Edge через http://localhost или GitHub Pages.";
+    return;
+  }
+
+  const fps = 30;
+  const exportSettings = settings();
+  const seconds = clamp(exportSettings.duration, 1, 20);
+  const totalFrames = Math.round(seconds * fps);
+  const exportCanvasEl = document.createElement("canvas");
+  exportCanvasEl.width = W;
+  exportCanvasEl.height = H;
+  const ctx = exportCanvasEl.getContext("2d");
+  const directory = await window.showDirectoryPicker({ mode: "readwrite" });
+
+  setBusy(true, `Сохраняю ${totalFrames} PNG-кадров...`);
+
+  for (let frame = 0; frame < totalFrames; frame += 1) {
+    const t = (frame / totalFrames) * exportSettings.duration;
+    render(t, ctx, { active: false, progress: 0, startAngle: 0 }, exportSettings);
+    const blob = await canvasToBlob(exportCanvasEl, "image/png");
+    const fileName = `terminal-screen-${String(frame).padStart(4, "0")}.png`;
+    const file = await directory.getFileHandle(fileName, { create: true });
+    const writable = await file.createWritable();
+    await writable.write(blob);
+    await writable.close();
+
+    if (frame % 10 === 0 || frame === totalFrames - 1) {
+      statusLine.textContent = `Сохраняю PNG-кадры: ${frame + 1}/${totalFrames}`;
+      await wait(0);
+    }
+  }
+
+  setBusy(false, `PNG-кадры готовы: ${totalFrames} шт. Соберите видео через ffmpeg.`);
+}
+
 function exportGlowStill() {
   const time = currentTimeSeconds();
   if (previewActive) {
@@ -911,6 +1006,12 @@ function exportGlowStill() {
     downloadBlob(blob, "terminal-glow.webp");
     statusLine.textContent = "WEBP-кадр свечения готов.";
   }, "image/webp", 0.96);
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, type, quality);
+  });
 }
 
 function ensureQrReady() {
@@ -940,6 +1041,34 @@ function downloadBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(link.href), 5000);
 }
 
+function downloadUrl(url, name) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+async function postJson(url, data) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return response.json();
+}
+
+function localApiBase() {
+  if (location.protocol === "http:" || location.protocol === "https:") {
+    return location.origin;
+  }
+  return "http://127.0.0.1:4173";
+}
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -949,12 +1078,14 @@ function clamp(value, min, max) {
 }
 
 function setBusy(isBusy, message) {
-  [exportScreen, exportGlow, exportGlowWebp].forEach((button) => {
+  [exportMp4, exportScreen, exportGlow, exportFrames, exportGlowWebp].forEach((button) => {
     button.disabled = isBusy;
   });
   statusLine.textContent = message;
 }
 
+exportMp4.addEventListener("click", exportMp4Offline);
 exportScreen.addEventListener("click", () => exportCanvas("screen"));
 exportGlow.addEventListener("click", () => exportCanvas("glow"));
+exportFrames.addEventListener("click", exportPngFrames);
 exportGlowWebp.addEventListener("click", exportGlowStill);
