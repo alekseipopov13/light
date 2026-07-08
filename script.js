@@ -841,7 +841,7 @@ async function exportCanvas(kind) {
     return;
   }
 
-  const fps = clamp(Number(controls.fps.value), 24, 60);
+  const fps = 60;
   const exportSettings = settings();
   const seconds = clamp(exportSettings.duration, 1, 20);
   const exportPreviewActive = false;
@@ -866,8 +866,8 @@ async function exportCanvas(kind) {
   setBusy(
     true,
     kind === "glow"
-      ? `Записываю зацикленное свечение ${seconds.toFixed(1)} сек...`
-      : `Записываю зацикленный экран ${seconds.toFixed(1)} сек...`
+      ? `Записываю зацикленное свечение ${seconds.toFixed(1)} сек, 60 fps...`
+      : `Записываю зацикленный экран ${seconds.toFixed(1)} сек, 60 fps...`
   );
   recorder.start();
 
